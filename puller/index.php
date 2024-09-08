@@ -1,89 +1,58 @@
 <?php
-// Set the content type to HTML
-header('Content-Type: text/html; charset=utf-8');
+
+$videoID = 'nGvdHESlRwc';
+$apiKey = 'AIzaSyDPw6sIn7qjLn3SFf-SwjCUVUrK4e47sjk'; // Development key
+
+// Get video details
+/*$ch = curl_init("https://www.googleapis.com/youtube/v3/videos?id=$videoID&key=$apiKey&part=contentDetails,statistics,status");
+echo curl_exec($ch);
+curl_close($ch);
+*/
+
+
+/**
+ * Sample PHP code for youtube.videos.update
+ * See instructions for running these code samples locally:
+ * https://developers.google.com/explorer-help/code-samples#php
+ */
+
+if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
+    throw new Exception(sprintf('Please run "composer require google/apiclient:~2.0" in "%s"', __DIR__));
+}
+require_once __DIR__ . '/vendor/autoload.php';
+
+$client = new Google_Client();
+$client->setApplicationName('API code samples');
+$client->setScopes([
+    'https://www.googleapis.com/auth/youtube.force-ssl',
+]);
+
+// TODO: For this request to work, you must replace
+//       "YOUR_CLIENT_SECRET_FILE.json" with a pointer to your
+//       client_secret.json file. For more information, see
+//       https://cloud.google.com/iam/docs/creating-managing-service-account-keys
+$client->setAuthConfig('YOUR_CLIENT_SECRET_FILE.json');
+$client->setAccessType('offline');
+
+// Request authorization from the user.
+$authUrl = $client->createAuthUrl();
+printf("Open this link in your browser:\n%s\n", $authUrl);
+print('Enter verification code: ');
+$authCode = trim(fgets(STDIN));
+
+// Exchange authorization code for an access token.
+$accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
+$client->setAccessToken($accessToken);
+
+// Define service object for making API requests.
+$service = new Google_Service_YouTube($client);
+
+// Define the $video object, which will be uploaded as the request body.
+$video = new Google_Service_YouTube_Video();
+
+// Add 'id' string to the $video object.
+$video->setId('');
+
+$response = $service->videos->update('', $video);
+print_r($response);
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to My PHP App</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        h1 {
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        input, button {
-            padding: 10px;
-            font-size: 16px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .info {
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>Welcome to My PHP App</h1>
-    <p>This is a simple PHP application to demonstrate basic PHP functionality.</p>
-
-    <form method="post" action="">
-        <div class="form-group">
-            <label for="name">Your Name:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        <button type="submit">Submit</button>
-    </form>
-
-    <?php
-    // Handle form submission
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $name = htmlspecialchars($_POST['name']);
-        echo "<div class='info'><p>Hello, <strong>$name</strong>! Thank you for submitting the form.</p></div>";
-    }
-    ?>
-
-    <div class="info">
-        <h2>Server Information</h2>
-        <ul>
-            <li><strong>PHP Version:</strong> <?php echo phpversion(); ?></li>
-            <li><strong>Server Software:</strong> <?php echo $_SERVER['SERVER_SOFTWARE']; ?></li>
-            <li><strong>Document Root:</strong> <?php echo $_SERVER['DOCUMENT_ROOT']; ?></li>
-        </ul>
-    </div>
-</div>
-
-</body>
-</html>
