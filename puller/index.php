@@ -1,58 +1,122 @@
 <?php
+require_once 'vendor/autoload.php';
 
-$videoID = 'nGvdHESlRwc';
-$apiKey = 'AIzaSyDPw6sIn7qjLn3SFf-SwjCUVUrK4e47sjk'; // Development key
+function getVideoDetails($videoId) {
+    $apiKey = 'AIzaSyDPw6sIn7qjLn3SFf-SwjCUVUrK4e47sjk';
+    $client = new Google_Client();
+    $client->setApplicationName('YouTube Video Details');
+    $client->setScopes(Google_Service_YouTube::YOUTUBE_FORCE_SSL);
+    $client->setAuthConfig('ytvu-client-secret.json');
+    $client->setAccessType('offline');
+    $client->setDeveloperKey($apiKey);
+    $youtube = new Google_Service_YouTube($client);
 
-// Get video details
-/*$ch = curl_init("https://www.googleapis.com/youtube/v3/videos?id=$videoID&key=$apiKey&part=contentDetails,statistics,status");
-echo curl_exec($ch);
-curl_close($ch);
-*/
+    try {
+        $response = $youtube->videos->listVideos('snippet,contentDetails,statistics', [
+            'id' => $videoId
+        ]);
+        if (empty($response['items'])) {
+            echo "No video found with ID: " . $videoId . "\n";
+        } else {
+            $video = $response['items'][0];
+//            echo "Title: " . $video['snippet']['title'] . "\n";
+//            echo "Description: " . $video['snippet']['description'] . "\n";
+//            echo "View Count: " . $video['statistics']['viewCount'] . "\n";
+//            echo "Likes: " . $video['statistics']['likeCount'] . "\n";
+//            echo "Duration: " . $video['contentDetails']['duration'] . "\n";
 
-
-/**
- * Sample PHP code for youtube.videos.update
- * See instructions for running these code samples locally:
- * https://developers.google.com/explorer-help/code-samples#php
- */
-
-if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
-    throw new Exception(sprintf('Please run "composer require google/apiclient:~2.0" in "%s"', __DIR__));
+            $viewCount = $video['statistics']['viewCount'];
+            updateVideoDetails($videoId, $video['snippet']['title'] . ' ' . $viewCount);
+        }
+    } catch (Google_Service_Exception $e) {
+        echo 'A service error occurred: ' . $e->getMessage();
+    } catch (Google_Exception $e) {
+        echo 'An error occurred: ' . $e->getMessage();
+    }
 }
-require_once __DIR__ . '/vendor/autoload.php';
 
-$client = new Google_Client();
-$client->setApplicationName('API code samples');
-$client->setScopes([
-    'https://www.googleapis.com/auth/youtube.force-ssl',
-]);
+function updateVideoDetails($videoId, $newTitle) {
+    $apiKey = 'AIzaSyDPw6sIn7qjLn3SFf-SwjCUVUrK4e47sjk';
+    $client = new Google_Client();
+    $client->setApplicationName('YouTube Video Details');
+    $client->setScopes(Google_Service_YouTube::YOUTUBE_FORCE_SSL);
+    $client->setAuthConfig('ytvu-client-secret.json');
+    $client->setAccessType('offline');
+    $client->setDeveloperKey($apiKey);
 
-// TODO: For this request to work, you must replace
-//       "YOUR_CLIENT_SECRET_FILE.json" with a pointer to your
-//       client_secret.json file. For more information, see
-//       https://cloud.google.com/iam/docs/creating-managing-service-account-keys
-$client->setAuthConfig('YOUR_CLIENT_SECRET_FILE.json');
-$client->setAccessType('offline');
+    if (file_exists('token.json')) {
+        $accessToken = json_decode(file_get_contents('token.json'), true);
+        $client->setAccessToken($accessToken);
+    }
 
-// Request authorization from the user.
-$authUrl = $client->createAuthUrl();
-printf("Open this link in your browser:\n%s\n", $authUrl);
-print('Enter verification code: ');
-$authCode = trim(fgets(STDIN));
+    if ($client->isAccessTokenExpired()) {
+        if ($client->getRefreshToken()) {
+            $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+        } else {
+            // Request a new access token
+            $authUrl = $client->createAuthUrl();
+            echo "Open this URL in your browser to authenticate:\n$authUrl\n";
+            echo "Enter the authorization code: ";
+            $authCode = trim(fgets(STDIN));
 
-// Exchange authorization code for an access token.
-$accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
-$client->setAccessToken($accessToken);
+            // Exchange authorization code for access token
+            $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
+            $client->setAccessToken($accessToken);
 
-// Define service object for making API requests.
-$service = new Google_Service_YouTube($client);
+            // Save the token to a file for future use
+            file_put_contents('token.json', json_encode($accessToken));
+        }
+    }
 
-// Define the $video object, which will be uploaded as the request body.
-$video = new Google_Service_YouTube_Video();
+    $youtube = new Google_Service_YouTube($client);
 
-// Add 'id' string to the $video object.
-$video->setId('');
+    try {
+        $listResponse  = $youtube->videos->listVideos('snippet', ['id' => $videoId]);
 
-$response = $service->videos->update('', $video);
-print_r($response);
+        if (empty($listResponse['items'])) {
+            echo "No video found with ID: " . $videoId . "\n";
+            return;
+        }
+
+        $video = $listResponse['items'][0];
+        $videoSnippet = $video['snippet'];
+        createJsonFile($videoSnippet, 'videosnippet.json');
+        $videoSnippet['title'] = $newTitle;
+        $videoSnippet['tags'] = null;
+        $updatedVideo = new Google_Service_YouTube_Video();
+        $updatedVideo->setId($videoId);
+        $updatedVideo->setSnippet($videoSnippet);
+        $updatedResponse = $youtube->videos->update('snippet', $updatedVideo);
+
+        echo "Video updated successfully!\n";
+        echo "New Title: " . $updatedResponse['snippet']['title'] . "\n";
+    } catch (Google_Service_Exception $e) {
+        echo 'A service error occurred: ' . $e->getMessage();
+    } catch (Google_Exception $e) {
+        echo 'An error occurred: ' . $e->getMessage();
+    }
+};
+
+function createJsonFile($data, $filePath) {
+    // Encode data to JSON
+    $jsonData = json_encode($data, JSON_PRETTY_PRINT);
+
+    // Check if encoding was successful
+    if ($jsonData === false) {
+        echo 'Failed to encode data to JSON.';
+        return false;
+    }
+
+    // Write JSON to file
+    if (file_put_contents($filePath, $jsonData) === false) {
+        echo 'Failed to write JSON data to file.';
+        return false;
+    }
+
+    echo 'JSON file created successfully!';
+    return true;
+}
+
+$videoId = 'nGvdHESlRwc';
+getVideoDetails($videoId);
 ?>

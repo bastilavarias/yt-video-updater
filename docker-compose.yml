@@ -1,21 +1,4 @@
 services:
-  yt_video_updater_server:
-    image: nginx:alpine
-    container_name: yt_video_updater_server
-    restart: unless-stopped
-    tty: true
-    ports:
-      - "1003:1003"
-    depends_on:
-      - yt_video_updater_puller
-      - yt_video_updater_processor
-    volumes:
-      - ./puller:/var/www/puller
-      - ./.docker/nginx/conf/local:/etc/nginx/conf.d
-      - ./.docker/nginx/log:/var/log/nginx
-    networks:
-      - network
-
   yt_video_updater_processor:
     build:
       context: ./processor
@@ -32,9 +15,7 @@ services:
       - ./processor/package.json:/usr/src/app/yt-video-updater/processor/package.json
       - ./processor/package-lock.json:/usr/src/app/yt-video-updater/processor/package-lock.json
       - /usr/src/app/yt-video-updater/processor/node_modules
-    networks:
-      - network
-        
+
   yt_video_updater_puller:
     build:
       context: ./puller
@@ -49,10 +30,3 @@ services:
     volumes:
       - ./puller:/var/www/puller
       - ./.docker/php/local.ini:/usr/local/etc/php/local.ini
-    networks:
-      - network
-
-
-networks:
-  network:
-    driver: bridge
