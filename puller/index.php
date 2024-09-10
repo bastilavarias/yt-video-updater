@@ -1,8 +1,13 @@
 <?php
 require_once 'vendor/autoload.php';
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 
 function getVideoDetails($videoId) {
-    $apiKey = 'AIzaSyDPw6sIn7qjLn3SFf-SwjCUVUrK4e47sjk';
+    $apiKey = $_ENV['GOOGLE_API_KEY'];
     $client = new Google_Client();
     $client->setApplicationName('YouTube Video Details');
     $client->setScopes(Google_Service_YouTube::YOUTUBE_FORCE_SSL);
@@ -36,7 +41,7 @@ function getVideoDetails($videoId) {
 }
 
 function updateVideoDetails($videoId, $newTitle) {
-    $apiKey = 'AIzaSyDPw6sIn7qjLn3SFf-SwjCUVUrK4e47sjk';
+    $apiKey = $_ENV['GOOGLE_API_KEY'];
     $client = new Google_Client();
     $client->setApplicationName('YouTube Video Details');
     $client->setScopes(Google_Service_YouTube::YOUTUBE_FORCE_SSL);
@@ -44,8 +49,8 @@ function updateVideoDetails($videoId, $newTitle) {
     $client->setAccessType('offline');
     $client->setDeveloperKey($apiKey);
 
-    if (file_exists('token.json')) {
-        $accessToken = json_decode(file_get_contents('token.json'), true);
+    if (file_exists('ytvu-refresh-token.json')) {
+        $accessToken = json_decode(file_get_contents('ytvu-refresh-token.json'), true);
         $client->setAccessToken($accessToken);
     }
 
@@ -64,7 +69,7 @@ function updateVideoDetails($videoId, $newTitle) {
             $client->setAccessToken($accessToken);
 
             // Save the token to a file for future use
-            file_put_contents('token.json', json_encode($accessToken));
+            file_put_contents('ytvu-refresh-token.json', json_encode($accessToken));
         }
     }
 

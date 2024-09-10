@@ -1,1 +1,4 @@
 vendor
+.env
+ytvu-client-secret.json
+ytvu-refresh-token.json
