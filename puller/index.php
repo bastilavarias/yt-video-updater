@@ -14,40 +14,6 @@ function getVideoDetails($videoId) {
     $client->setAuthConfig('ytvu-client-secret.json');
     $client->setAccessType('offline');
     $client->setDeveloperKey($apiKey);
-    $youtube = new Google_Service_YouTube($client);
-
-    try {
-        $response = $youtube->videos->listVideos('snippet,contentDetails,statistics', [
-            'id' => $videoId
-        ]);
-        if (empty($response['items'])) {
-            echo "No video found with ID: " . $videoId . "\n";
-        } else {
-            $video = $response['items'][0];
-//            echo "Title: " . $video['snippet']['title'] . "\n";
-//            echo "Description: " . $video['snippet']['description'] . "\n";
-//            echo "View Count: " . $video['statistics']['viewCount'] . "\n";
-//            echo "Likes: " . $video['statistics']['likeCount'] . "\n";
-//            echo "Duration: " . $video['contentDetails']['duration'] . "\n";
-
-            $viewCount = $video['statistics']['viewCount'];
-            updateVideoDetails($videoId, $video['snippet']['title'] . ' ' . $viewCount);
-        }
-    } catch (Google_Service_Exception $e) {
-        echo 'A service error occurred: ' . $e->getMessage();
-    } catch (Google_Exception $e) {
-        echo 'An error occurred: ' . $e->getMessage();
-    }
-}
-
-function updateVideoDetails($videoId, $newTitle) {
-    $apiKey = $_ENV['GOOGLE_API_KEY'];
-    $client = new Google_Client();
-    $client->setApplicationName('YouTube Video Details');
-    $client->setScopes(Google_Service_YouTube::YOUTUBE_FORCE_SSL);
-    $client->setAuthConfig('ytvu-client-secret.json');
-    $client->setAccessType('offline');
-    $client->setDeveloperKey($apiKey);
 
     if (file_exists('ytvu-refresh-token.json')) {
         $accessToken = json_decode(file_get_contents('ytvu-refresh-token.json'), true);
@@ -58,17 +24,12 @@ function updateVideoDetails($videoId, $newTitle) {
         if ($client->getRefreshToken()) {
             $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
         } else {
-            // Request a new access token
             $authUrl = $client->createAuthUrl();
             echo "Open this URL in your browser to authenticate:\n$authUrl\n";
             echo "Enter the authorization code: ";
             $authCode = trim(fgets(STDIN));
-
-            // Exchange authorization code for access token
             $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
             $client->setAccessToken($accessToken);
-
-            // Save the token to a file for future use
             file_put_contents('ytvu-refresh-token.json', json_encode($accessToken));
         }
     }
@@ -76,51 +37,47 @@ function updateVideoDetails($videoId, $newTitle) {
     $youtube = new Google_Service_YouTube($client);
 
     try {
-        $listResponse  = $youtube->videos->listVideos('snippet', ['id' => $videoId]);
-
-        if (empty($listResponse['items'])) {
+        $response = $youtube->videos->listVideos('snippet,contentDetails,statistics', [
+            'id' => $videoId
+        ]);
+        if (empty($response['items'])) {
             echo "No video found with ID: " . $videoId . "\n";
-            return;
+        } else {
+            $video = $response['items'][0];
+            updateVideoDetails($videoId, $video['statistics']['viewCount']);
         }
-
-        $video = $listResponse['items'][0];
-        $videoSnippet = $video['snippet'];
-        createJsonFile($videoSnippet, 'videosnippet.json');
-        $videoSnippet['title'] = $newTitle;
-        $videoSnippet['tags'] = null;
-        $updatedVideo = new Google_Service_YouTube_Video();
-        $updatedVideo->setId($videoId);
-        $updatedVideo->setSnippet($videoSnippet);
-        $updatedResponse = $youtube->videos->update('snippet', $updatedVideo);
-
-        echo "Video updated successfully!\n";
-        echo "New Title: " . $updatedResponse['snippet']['title'] . "\n";
     } catch (Google_Service_Exception $e) {
         echo 'A service error occurred: ' . $e->getMessage();
     } catch (Google_Exception $e) {
         echo 'An error occurred: ' . $e->getMessage();
     }
-};
-
-function createJsonFile($data, $filePath) {
-    // Encode data to JSON
-    $jsonData = json_encode($data, JSON_PRETTY_PRINT);
-
-    // Check if encoding was successful
-    if ($jsonData === false) {
-        echo 'Failed to encode data to JSON.';
-        return false;
-    }
-
-    // Write JSON to file
-    if (file_put_contents($filePath, $jsonData) === false) {
-        echo 'Failed to write JSON data to file.';
-        return false;
-    }
-
-    echo 'JSON file created successfully!!!';
-    return true;
 }
+
+function updateVideoDetails($videoId, $views) {
+    $url = $_ENV['PROCESSOR_URL'] . '/';
+    $clientSecret = file_get_contents('ytvu-refresh-token.json');
+    $headers = [
+        "google-client-secret: $clientSecret"
+    ];
+    $data = [
+        'video_id' => $videoId,
+        'views' => $views
+    ];
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    if (curl_errno($ch)) {
+        echo 'Curl error: ' . curl_error($ch);
+    }
+    curl_close($ch);
+
+    return $response;
+}
+
+
 
 $videoId = 'nGvdHESlRwc';
 getVideoDetails($videoId);
