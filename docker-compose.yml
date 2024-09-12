@@ -6,8 +6,6 @@ services:
     container_name: yt_video_updater_processor
     restart: unless-stopped
     tty: true
-    env_file:
-      - ./processor/.env
     ports:
       - "2003:2003"
     volumes:

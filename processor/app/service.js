@@ -55,7 +55,7 @@ const updateThumbnail = async ({ views, videoId, refreshToken }) => {
 };
 
 const process = async ({ views, videoId, refreshToken }) => {
-    await updateVideoDetails({ views, videoId, refreshToken });
+    // await updateVideoDetails({ views, videoId, refreshToken });
     await updateThumbnail({ views, videoId, refreshToken });
 };
 

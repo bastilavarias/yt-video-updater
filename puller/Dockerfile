@@ -31,13 +31,13 @@ COPY --chown=www-data:www-data . /var/www/puller
 RUN chown -R www-data:www-data /var/www/puller \
     && chmod -R 755 /var/www/puller
 
-RUN echo "*/2 * * * * /usr/local/bin/php /var/www/puller/index.php >> /var/log/cron.log 2>&1" > /etc/cron.d/my-crontab
-
-RUN chmod 0644 /etc/cron.d/my-crontab
-
-RUN crontab /etc/cron.d/my-crontab
-
-RUN touch /var/log/cron.log
+#RUN echo "*/2 * * * * /usr/local/bin/php /var/www/puller/index.php >> /var/log/cron.log 2>&1" > /etc/cron.d/my-crontab
+#
+#RUN chmod 0644 /etc/cron.d/my-crontab
+#
+#RUN crontab /etc/cron.d/my-crontab
+#
+#RUN touch /var/log/cron.log
 
 RUN sed -i 's/listen = .*/listen = 0.0.0.0:5002/' /usr/local/etc/php-fpm.d/zz-docker.conf
 
