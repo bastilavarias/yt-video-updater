@@ -5,6 +5,8 @@ const process = async (request, response) => {
         const payload = {
             videoId: request.body.video_id,
             views: request.body.views,
+            likes: request.body.likes,
+            comments: request.body.comments,
             refreshToken: request.headers['google-refresh-token'] || null,
         };
         const result = await service.process(payload);

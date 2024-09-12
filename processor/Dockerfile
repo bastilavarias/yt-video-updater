@@ -5,7 +5,10 @@ WORKDIR /usr/src/app/yt-video-updater/processor
 COPY package.json ./
 COPY package-lock.json ./
 
-RUN npm install
+# Install dependencies and fontconfig using apk
+RUN npm install && \
+    apk update && \
+    apk add --no-cache fontconfig
 
 COPY . .
 

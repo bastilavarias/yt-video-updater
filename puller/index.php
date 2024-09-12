@@ -15,8 +15,8 @@ function getVideoDetails($videoId) {
     $client->setAccessType('offline');
     $client->setDeveloperKey($apiKey);
 
-    if (file_exists(__DIR__ . '/ytvy-refresh-token.json')) {
-        $accessToken = json_decode(file_get_contents(__DIR__ . '/ytvy-refresh-token.json'), true);
+    if (file_exists(__DIR__ . '/ytvu-refresh-token.json')) {
+        $accessToken = json_decode(file_get_contents(__DIR__ . '/ytvu-refresh-token.json'), true);
         $client->setAccessToken($accessToken);
     }
 
@@ -44,7 +44,14 @@ function getVideoDetails($videoId) {
             echo "No video found with ID: " . $videoId . "\n";
         } else {
             $video = $response['items'][0];
-            updateVideoDetails($videoId, $video['statistics']['viewCount']);
+            $details = [
+                'video_id' => $videoId,
+                'views' => $video['statistics']['viewCount'],
+                'likes' => $video['statistics']['likeCount'],
+                'comments' => $video['statistics']['commentCount'],
+
+            ];
+            updateVideoDetails($details);
         }
     } catch (Google_Service_Exception $e) {
         echo 'A service error occurred: ' . $e->getMessage();
@@ -53,20 +60,16 @@ function getVideoDetails($videoId) {
     }
 }
 
-function updateVideoDetails($videoId, $views) {
+function updateVideoDetails($details) {
     $url = $_ENV['PROCESSOR_URL'] . '/';
     $refreshToken = file_get_contents(__DIR__ . '/ytvu-refresh-token.json');
     $headers = [
         "google-refresh-token: $refreshToken"
     ];
-    $data = [
-        'video_id' => $videoId,
-        'views' => $views
-    ];
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($details));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $response = curl_exec($ch);
     if (curl_errno($ch)) {
