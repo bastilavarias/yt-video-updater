@@ -11,12 +11,12 @@ function getVideoDetails($videoId) {
     $client = new Google_Client();
     $client->setApplicationName('YouTube Video Details');
     $client->setScopes(Google_Service_YouTube::YOUTUBE_FORCE_SSL);
-    $client->setAuthConfig('ytvu-client-secret.json');
+    $client->setAuthConfig(__DIR__ . '/ytvu-client-secret.json');
     $client->setAccessType('offline');
     $client->setDeveloperKey($apiKey);
 
-    if (file_exists('ytvu-refresh-token.json')) {
-        $accessToken = json_decode(file_get_contents('ytvu-refresh-token.json'), true);
+    if (file_exists(__DIR__ . '/ytvy-refresh-token.json')) {
+        $accessToken = json_decode(file_get_contents(__DIR__ . '/ytvy-refresh-token.json'), true);
         $client->setAccessToken($accessToken);
     }
 
@@ -30,7 +30,7 @@ function getVideoDetails($videoId) {
             $authCode = trim(fgets(STDIN));
             $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
             $client->setAccessToken($accessToken);
-            file_put_contents('ytvu-refresh-token.json', json_encode($accessToken));
+            file_put_contents(__DIR__ . '/ytvu-refresh-token.json', json_encode($accessToken));
         }
     }
 
@@ -55,9 +55,9 @@ function getVideoDetails($videoId) {
 
 function updateVideoDetails($videoId, $views) {
     $url = $_ENV['PROCESSOR_URL'] . '/';
-    $clientSecret = file_get_contents('ytvu-refresh-token.json');
+    $refreshToken = file_get_contents(__DIR__ . '/ytvu-refresh-token.json');
     $headers = [
-        "google-client-secret: $clientSecret"
+        "google-refresh-token: $refreshToken"
     ];
     $data = [
         'video_id' => $videoId,
@@ -76,8 +76,6 @@ function updateVideoDetails($videoId, $views) {
 
     return $response;
 }
-
-
 
 $videoId = 'nGvdHESlRwc';
 getVideoDetails($videoId);

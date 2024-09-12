@@ -1,9 +1,9 @@
 const { google } = require('googleapis');
 const fs = require('fs');
 
-const updateVideoDetails = async ({ views, videoId, clientSecret }) => {
+const updateVideoDetails = async ({ views, videoId, refreshToken }) => {
     const client = new google.auth.OAuth2();
-    client.setCredentials(JSON.parse(clientSecret));
+    client.setCredentials(JSON.parse(refreshToken));
     const youtube = google.youtube({ version: 'v3', auth: client });
     try {
         const response = await youtube.videos.list({
@@ -27,13 +27,15 @@ const updateVideoDetails = async ({ views, videoId, clientSecret }) => {
         console.log('Video updated successfully!');
         console.log('New Title:', updatedResponse.data.snippet.title);
     } catch (err) {
+        console.error('Action:', 'Update video title');
         console.error('Error:', err.message);
+        console.error(err);
     }
 };
 
-const updateThumbnail = async ({ views, videoId, clientSecret }) => {
+const updateThumbnail = async ({ views, videoId, refreshToken }) => {
     const client = new google.auth.OAuth2();
-    client.setCredentials(JSON.parse(clientSecret));
+    client.setCredentials(JSON.parse(refreshToken));
     const youtube = google.youtube({ version: 'v3', auth: client });
     try {
         const response = await youtube.thumbnails.set({
@@ -46,13 +48,15 @@ const updateThumbnail = async ({ views, videoId, clientSecret }) => {
         console.log('Thumbnail updated successfully!');
         console.log('Response:', response.data);
     } catch (err) {
+        console.error('Action:', 'Update video thumbnail');
         console.error('Error:', err.message);
+        console.error(err);
     }
 };
 
-const process = async ({ views, videoId, clientSecret }) => {
-    await updateVideoDetails({ views, videoId, clientSecret });
-    await updateThumbnail({ views, videoId, clientSecret });
+const process = async ({ views, videoId, refreshToken }) => {
+    await updateVideoDetails({ views, videoId, refreshToken });
+    await updateThumbnail({ views, videoId, refreshToken });
 };
 
 const service = {

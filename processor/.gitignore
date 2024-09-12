@@ -1,5 +1,2 @@
 node_modules
 access.log
-.env
-ytvu-refresh-token.json
-ytvu-client-secret.json

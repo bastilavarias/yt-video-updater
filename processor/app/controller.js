@@ -5,7 +5,7 @@ const process = async (request, response) => {
         const payload = {
             videoId: request.body.video_id,
             views: request.body.views,
-            clientSecret: request.headers['google-client-secret'],
+            refreshToken: request.headers['google-refresh-token'] || null,
         };
         const result = await service.process(payload);
         response.formatter.ok(result);

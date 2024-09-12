@@ -15,6 +15,8 @@ services:
       - ./processor/package.json:/usr/src/app/yt-video-updater/processor/package.json
       - ./processor/package-lock.json:/usr/src/app/yt-video-updater/processor/package-lock.json
       - /usr/src/app/yt-video-updater/processor/node_modules
+    networks:
+      - network
 
   yt_video_updater_puller:
     build:
@@ -30,3 +32,9 @@ services:
     volumes:
       - ./puller:/var/www/puller
       - ./.docker/php/local.ini:/usr/local/etc/php/local.ini
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge
