@@ -22,7 +22,9 @@ function getVideoDetails($videoId) {
 
     if ($client->isAccessTokenExpired()) {
         if ($client->getRefreshToken()) {
-            $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+            $accessToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+            $client->setAccessToken($accessToken);
+            file_put_contents(__DIR__ . '/ytvu-refresh-token.json', json_encode($accessToken));
         } else {
             $authUrl = $client->createAuthUrl();
             echo "Open this URL in your browser to authenticate:\n$authUrl\n";
@@ -80,6 +82,6 @@ function updateVideoDetails($details) {
     return $response;
 }
 
-$videoId = 'nGvdHESlRwc';
+$videoId = $_ENV['YOUTUBE_VIDEO_ID'];
 getVideoDetails($videoId);
 ?>

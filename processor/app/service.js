@@ -2,8 +2,26 @@ const { google } = require('googleapis');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const path = require('path');
 const { createWriteStream } = require('fs');
+const fs = require('fs');
 
-const updateVideoDetails = async ({ views, videoId, refreshToken }) => {
+function formatNumber(number, limit) {
+    if (number >= limit) {
+        const divisor = limit >= 1_000_000 ? 1_000_000 : 1_000;
+        const suffix = limit >= 1_000_000 ? 'M' : 'k';
+
+        return (number / divisor).toFixed(1).replace(/\.0$/, '') + suffix;
+    } else {
+        return number.toLocaleString();
+    }
+}
+
+const updateVideoDetails = async ({
+    videoId,
+    views,
+    likes,
+    comments,
+    refreshToken,
+}) => {
     const client = new google.auth.OAuth2();
     client.setCredentials(JSON.parse(refreshToken));
     const youtube = google.youtube({ version: 'v3', auth: client });
@@ -17,7 +35,7 @@ const updateVideoDetails = async ({ views, videoId, refreshToken }) => {
             return;
         }
         const video = response.data.items[0];
-        video.snippet.title = `₱20 Pesos Bakal GYM in TONDO ${views}`;
+        video.snippet.title = `ANG VIDEO NA 'TO AY MERONG ${formatNumber(views, 100000)} VIEWS, ${formatNumber(likes, 10000)} LIKES AT ${formatNumber(views, 10000)} COMMENTS`;
         const updatedResponse = await youtube.videos.update({
             part: 'snippet',
             requestBody: {
@@ -46,15 +64,17 @@ const updateThumbnail = async ({
     const youtube = google.youtube({ version: 'v3', auth: client });
     try {
         await createThumbnail({ views, likes, comments });
-        // const response = await youtube.thumbnails.set({
-        //     videoId: videoId,
-        //     media: {
-        //         body: fs.createReadStream('./thumbnail.png'),
-        //     },
-        // });
-        //
-        // console.log('Thumbnail updated successfully!');
-        // console.log('Response:', response.data);
+        const response = await youtube.thumbnails.set({
+            videoId: videoId,
+            media: {
+                body: fs.createReadStream(
+                    path.join(__dirname, 'assets', 'processed-thumbnail.jpg'),
+                ),
+            },
+        });
+
+        console.log('Thumbnail updated successfully!');
+        console.log('Response:', response.data);
     } catch (err) {
         console.error('Action:', 'Update video thumbnail');
         console.error('Error:', err.message);
@@ -63,17 +83,101 @@ const updateThumbnail = async ({
 };
 
 const createThumbnail = async ({ views, likes, comments }) => {
+    const GREEN_COLOR = '#00fb0b';
+
+    const drawTextWithSpacing = (context, text, x, y, letterSpacing) => {
+        context.save();
+        let currentX = x;
+        for (let i = 0; i < text.length; i++) {
+            context.fillText(text[i], currentX, y);
+            currentX += context.measureText(text[i]).width + letterSpacing;
+        }
+        context.restore();
+    };
+
     try {
         const image = await loadImage(
-            path.join(__dirname, 'assets', 'original-thumbnail.jpg'),
+            path.join(
+                __dirname,
+                'assets',
+                `thumbnail-${Math.floor(Math.random() * 5) + 1}.jpg`, // Random numbers between - 5
+            ),
         );
         const canvas = createCanvas(image.width, image.height);
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(image, 0, 0);
-        ctx.font = '100px MontserratBlack';
-        ctx.fillStyle = 'white';
-        ctx.textAlign = 'left';
-        ctx.fillText(views, canvas.width / 2, canvas.height / 2);
+        const context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0);
+
+        const textWidthBase = image.width * 0.4;
+        const textLengthBase = canvas.height / 2 - 50;
+
+        /*
+         * Views Count
+         * */
+        context.font = '135px MontserratBlack';
+        context.fillStyle = GREEN_COLOR;
+        context.textAlign = 'left';
+        await drawTextWithSpacing(
+            context,
+            formatNumber(views, 10000000),
+            textWidthBase,
+            textLengthBase - 100,
+            5,
+        );
+        context.font = '80px MontserratBlack';
+        context.fillStyle = 'white';
+        drawTextWithSpacing(
+            context,
+            'VIEWS NA!!',
+            textWidthBase,
+            textLengthBase,
+            2,
+        );
+
+        /*
+         * Likes Count
+         * */
+        context.font = '100px MontserratBlack';
+        context.fillStyle = GREEN_COLOR;
+        context.textAlign = 'left';
+        await drawTextWithSpacing(
+            context,
+            formatNumber(likes, 10000),
+            textWidthBase,
+            textLengthBase + 200,
+            5,
+        );
+        context.font = '40px MontserratBlack';
+        context.fillStyle = 'white';
+        drawTextWithSpacing(
+            context,
+            'LIKES',
+            textWidthBase,
+            textLengthBase + 250,
+            2,
+        );
+
+        /*
+         * Comments Count
+         * */
+        context.font = '100px MontserratBlack';
+        context.fillStyle = GREEN_COLOR;
+        context.textAlign = 'left';
+        await drawTextWithSpacing(
+            context,
+            formatNumber(comments, 10000),
+            textWidthBase * 1.85,
+            textLengthBase + 200,
+            5,
+        );
+        context.font = '40px MontserratBlack';
+        context.fillStyle = 'white';
+        drawTextWithSpacing(
+            context,
+            'COMMENTS',
+            textWidthBase * 1.85,
+            textLengthBase + 250,
+            2,
+        );
 
         const out = createWriteStream(
             path.join(__dirname, 'assets', 'processed-thumbnail.jpg'),
@@ -81,7 +185,6 @@ const createThumbnail = async ({ views, likes, comments }) => {
         const stream = canvas.createJPEGStream();
         stream.pipe(out);
 
-        // Wait for the file to finish saving
         await new Promise((resolve, reject) => {
             out.on('finish', resolve);
             out.on('error', reject);
@@ -110,7 +213,7 @@ const loadFonts = () => {
 };
 
 const process = async ({ views, videoId, likes, comments, refreshToken }) => {
-    // await updateVideoDetails({ videoId, views, refreshToken });
+    await updateVideoDetails({ videoId, views, likes, comments, refreshToken });
     await updateThumbnail({ videoId, views, likes, comments, refreshToken });
 };
 
