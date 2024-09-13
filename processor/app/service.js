@@ -1,6 +1,7 @@
 const { google } = require('googleapis');
-const sharp = require('sharp');
+const { createCanvas, loadImage, registerFont } = require('canvas');
 const path = require('path');
+const { createWriteStream } = require('fs');
 
 const updateVideoDetails = async ({ views, videoId, refreshToken }) => {
     const client = new google.auth.OAuth2();
@@ -33,7 +34,6 @@ const updateVideoDetails = async ({ views, videoId, refreshToken }) => {
         console.error(err);
     }
 };
-
 const updateThumbnail = async ({
     videoId,
     views,
@@ -64,23 +64,28 @@ const updateThumbnail = async ({
 
 const createThumbnail = async ({ views, likes, comments }) => {
     try {
-        const width = 1280;
-        const height = 720;
-        const text = 'E.T, go home';
-        const svgText = `
-    <svg width="${width}" height="${height}">
-      <style>
-      .title { fill: #ffffff; font-size: 70px; font-weight: bold;}
-      </style>
-      <text x="50%" y="50%" text-anchor="middle" class="title">${text}</text>
-    </svg>
-    `;
+        const image = await loadImage(
+            path.join(__dirname, 'assets', 'original-thumbnail.jpg'),
+        );
+        const canvas = createCanvas(image.width, image.height);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0);
+        ctx.font = '100px MontserratBlack';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'left';
+        ctx.fillText(views, canvas.width / 2, canvas.height / 2);
 
-        const svgBuffer = Buffer.from(svgText);
+        const out = createWriteStream(
+            path.join(__dirname, 'assets', 'processed-thumbnail.jpg'),
+        );
+        const stream = canvas.createJPEGStream();
+        stream.pipe(out);
 
-        await sharp(path.join(__dirname, 'assets', 'original-thumbnail.jpg'))
-            .composite([{ input: svgBuffer, left: 5, top: 5 }])
-            .toFile(path.join(__dirname, 'assets', 'processed-thumbnail.jpg'));
+        // Wait for the file to finish saving
+        await new Promise((resolve, reject) => {
+            out.on('finish', resolve);
+            out.on('error', reject);
+        });
 
         console.log('Thumbnail picture created successfully!');
     } catch (err) {
@@ -89,12 +94,27 @@ const createThumbnail = async ({ views, likes, comments }) => {
         console.error(err);
     }
 };
+const loadFonts = () => {
+    registerFont(
+        path.join(__dirname, 'assets', 'montserrat/MontserratRegular.ttf'),
+        {
+            family: 'Montserrat',
+        },
+    );
+    registerFont(
+        path.join(__dirname, 'assets', 'montserrat/MontserratBlack.ttf'),
+        {
+            family: 'MontserratBlack',
+        },
+    );
+};
 
 const process = async ({ views, videoId, likes, comments, refreshToken }) => {
     // await updateVideoDetails({ videoId, views, refreshToken });
     await updateThumbnail({ videoId, views, likes, comments, refreshToken });
 };
 
+loadFonts();
 const service = {
     process,
 };
