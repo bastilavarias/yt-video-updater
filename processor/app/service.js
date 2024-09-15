@@ -50,7 +50,7 @@ const updateVideoDetails = async ({
             return;
         }
         const video = response.data.items[0];
-        video.snippet.title = `ANG VIDEO NA 'TO AY MERONG ${formatNumber(views, 100000)} VIEWS, ${formatNumber(likes, 10000)} LIKES AT ${formatNumber(views, 10000)} COMMENTS`;
+        video.snippet.title = `ANG VIDEO NA 'TO AY MERONG ${formatNumber(views, 100000)} VIEWS, ${formatNumber(likes, 10000)} LIKES AT ${formatNumber(comments, 10000)} COMMENTS`;
         const updatedResponse = await youtube.videos.update({
             part: 'snippet',
             requestBody: {
