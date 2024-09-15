@@ -23,6 +23,9 @@ RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install gd
 
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+RUN composer self-update
+
 WORKDIR /var/www/puller
 
 COPY . /var/www/puller
@@ -40,6 +43,8 @@ RUN crontab /etc/cron.d/my-crontab
 RUN touch /var/log/cron.log
 
 RUN sed -i 's/listen = .*/listen = 0.0.0.0:5002/' /usr/local/etc/php-fpm.d/zz-docker.conf
+
+RUN composer install
 
 EXPOSE 5002
 
