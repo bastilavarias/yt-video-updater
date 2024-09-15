@@ -5,7 +5,14 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-
+/*
+ * @description This function retrieves video details such as view count, like count, and comment count from the YouTube Data API
+ * using the provided video ID. It utilizes Google's OAuth authentication with a service account to access the YouTube API,
+ * handling access token refresh if necessary. Once authenticated, it fetches the video's snippet, content details,
+ * and statistics, and passes the relevant data to the updateVideoDetails function.
+ *
+ * @param string $videoId The ID of the YouTube video for which details are being fetched.
+ */
 function getVideoDetails($videoId) {
     $apiKey = $_ENV['GOOGLE_API_KEY'];
     $client = new Google_Client();
@@ -62,6 +69,14 @@ function getVideoDetails($videoId) {
     }
 }
 
+/*
+ * @description This function sends a POST request to an external processor URL to update video details (such as video ID, views, likes, and comments).
+ * The function retrieves the Google API refresh token from a local file and includes it as a header in the request. The video details are passed as
+ * form data, and the response from the server is returned. If a cURL error occurs during the request, it outputs the error message.
+ *
+ * @param array $details An associative array containing video details, including 'video_id', 'views', 'likes', and 'comments'.
+ * @return string The response from the processor URL after submitting the video details.
+ */
 function updateVideoDetails($details) {
     $url = $_ENV['PROCESSOR_URL'] . '/';
     $refreshToken = file_get_contents(__DIR__ . '/ytvu-refresh-token.json');

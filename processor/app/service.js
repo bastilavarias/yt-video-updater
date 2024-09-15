@@ -4,6 +4,14 @@ const path = require('path');
 const { createWriteStream } = require('fs');
 const fs = require('fs');
 
+/**
+ * @description Formats a number into a human-readable string, adding 'k' for thousands or 'M' for millions
+ * based on the provided limit. For smaller numbers, it returns the number with comma separators.
+ *
+ * @param {number} number - The number to be formatted.
+ * @param {number} limit - The threshold to determine if 'k' or 'M' should be added.
+ * @returns {string} - The formatted number.
+ */
 function formatNumber(number, limit) {
     if (number >= limit) {
         const divisor = limit >= 1_000_000 ? 1_000_000 : 1_000;
@@ -15,6 +23,13 @@ function formatNumber(number, limit) {
     }
 }
 
+/**
+ * @description Updates the YouTube video title by fetching the video data, modifying its title to include
+ * views, likes, and comments, and then updating the video on YouTube using the YouTube Data API.
+ *
+ * @param {object} videoDetails - Object containing videoId, views, likes, comments, and refreshToken.
+ * @returns {Promise<void>} - Updates the video title asynchronously.
+ */
 const updateVideoDetails = async ({
     videoId,
     views,
@@ -52,6 +67,14 @@ const updateVideoDetails = async ({
         console.error(err);
     }
 };
+
+/**
+ * @description Updates the YouTube video thumbnail by creating a new thumbnail image
+ * and uploading it using the YouTube Data API.
+ *
+ * @param {object} videoDetails - Object containing videoId, views, likes, comments, and refreshToken.
+ * @returns {Promise<void>} - Updates the video thumbnail asynchronously.
+ */
 const updateThumbnail = async ({
     videoId,
     views,
@@ -82,6 +105,13 @@ const updateThumbnail = async ({
     }
 };
 
+/**
+ * @description Creates a YouTube thumbnail image with dynamic text displaying views, likes, and comments.
+ * It uses the canvas library to draw the image and text, and then saves it as a JPEG file.
+ *
+ * @param {object} details - Object containing views, likes, and comments.
+ * @returns {Promise<void>} - Creates and saves the thumbnail image asynchronously.
+ */
 const createThumbnail = async ({ views, likes, comments }) => {
     const GREEN_COLOR = '#00fb0b';
 
@@ -97,11 +127,7 @@ const createThumbnail = async ({ views, likes, comments }) => {
 
     try {
         const image = await loadImage(
-            path.join(
-                __dirname,
-                'assets',
-                `thumbnail-${Math.floor(Math.random() * 5) + 1}.jpg`, // Random numbers between - 5
-            ),
+            path.join(__dirname, 'assets', `original-thumbnail.jpg`),
         );
         const canvas = createCanvas(image.width, image.height);
         const context = canvas.getContext('2d');
@@ -197,6 +223,10 @@ const createThumbnail = async ({ views, likes, comments }) => {
         console.error(err);
     }
 };
+
+/**
+ * @description Loads the required fonts for creating the thumbnail image by registering them with the canvas library.
+ */
 const loadFonts = () => {
     registerFont(
         path.join(__dirname, 'assets', 'montserrat/MontserratRegular.ttf'),
@@ -212,6 +242,13 @@ const loadFonts = () => {
     );
 };
 
+/**
+ * @description Orchestrates the process of updating both the video title and thumbnail for a YouTube video.
+ * It calls the `updateVideoDetails` and `updateThumbnail` functions sequentially.
+ *
+ * @param {object} details - Object containing views, videoId, likes, comments, and refreshToken.
+ * @returns {Promise<void>} - Executes the update process asynchronously.
+ */
 const process = async ({ views, videoId, likes, comments, refreshToken }) => {
     await updateVideoDetails({ videoId, views, likes, comments, refreshToken });
     await updateThumbnail({ videoId, views, likes, comments, refreshToken });
