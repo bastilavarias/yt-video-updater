@@ -34,7 +34,7 @@ COPY --chown=www-data:www-data . /var/www/puller
 RUN chown -R www-data:www-data /var/www/puller \
     && chmod -R 755 /var/www/puller
 
-RUN echo "*/5 * * * * /usr/local/bin/php /var/www/puller/index.php >> /var/log/cron.log 2>&1" > /etc/cron.d/my-crontab
+RUN echo "*/15 * * * * /usr/local/bin/php /var/www/puller/index.php >> /var/log/cron.log 2>&1" > /etc/cron.d/my-crontab
 
 RUN chmod 0644 /etc/cron.d/my-crontab
 
