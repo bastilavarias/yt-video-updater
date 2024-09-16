@@ -87,14 +87,14 @@ const updateThumbnail = async ({
     const youtube = google.youtube({ version: 'v3', auth: client });
     try {
         await createThumbnail({ views, likes, comments });
-        // await youtube.thumbnails.set({
-        //     videoId: videoId,
-        //     media: {
-        //         body: fs.createReadStream(
-        //             path.join(__dirname, 'assets', 'processed-thumbnail.jpg'),
-        //         ),
-        //     },
-        // });
+        await youtube.thumbnails.set({
+            videoId: videoId,
+            media: {
+                body: fs.createReadStream(
+                    path.join(__dirname, 'assets', 'processed-thumbnail.jpg'),
+                ),
+            },
+        });
 
         console.log('Thumbnail updated successfully!');
     } catch (err) {
@@ -261,7 +261,7 @@ const process = async ({ views, videoId, likes, comments, refreshToken }) => {
             second: '2-digit',
         }),
     );
-    // await updateVideoDetails({ videoId, views, likes, comments, refreshToken });
+    await updateVideoDetails({ videoId, views, likes, comments, refreshToken });
     await updateThumbnail({ videoId, views, likes, comments, refreshToken });
     console.log('End of updating.');
 };
