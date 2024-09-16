@@ -87,7 +87,7 @@ const updateThumbnail = async ({
     const youtube = google.youtube({ version: 'v3', auth: client });
     try {
         await createThumbnail({ views, likes, comments });
-        const response = await youtube.thumbnails.set({
+        await youtube.thumbnails.set({
             videoId: videoId,
             media: {
                 body: fs.createReadStream(
@@ -97,7 +97,6 @@ const updateThumbnail = async ({
         });
 
         console.log('Thumbnail updated successfully!');
-        console.log('Response:', response.data);
     } catch (err) {
         console.error('Action:', 'Update video thumbnail');
         console.error('Error:', err.message);
@@ -134,74 +133,74 @@ const createThumbnail = async ({ views, likes, comments }) => {
         context.drawImage(image, 0, 0);
 
         const textWidthBase = image.width * 0.4;
-        const textLengthBase = canvas.height / 2 - 50;
+        const textHeightBase = canvas.height / 2 - 20;
 
         /*
          * Views Count
          * */
-        context.font = '135px MontserratBlack';
+        context.font = '220px MontserratBlack';
         context.fillStyle = GREEN_COLOR;
         context.textAlign = 'left';
         await drawTextWithSpacing(
             context,
-            formatNumber(views, 10000000),
+            formatNumber(views, 10000),
             textWidthBase,
-            textLengthBase - 100,
+            textHeightBase - 100,
             5,
         );
-        context.font = '80px MontserratBlack';
+        context.font = '120px MontserratBlack';
         context.fillStyle = 'white';
         drawTextWithSpacing(
             context,
-            'VIEWS NA!!',
+            'VIEWS',
             textWidthBase,
-            textLengthBase,
+            textHeightBase + 20,
             2,
         );
 
         /*
          * Likes Count
          * */
-        context.font = '100px MontserratBlack';
+        context.font = '150px MontserratBlack';
         context.fillStyle = GREEN_COLOR;
         context.textAlign = 'left';
         await drawTextWithSpacing(
             context,
-            formatNumber(likes, 10000),
+            formatNumber(likes, 1000),
             textWidthBase,
-            textLengthBase + 200,
+            textHeightBase + 200,
             5,
         );
-        context.font = '40px MontserratBlack';
+        context.font = '60px MontserratBlack';
         context.fillStyle = 'white';
         drawTextWithSpacing(
             context,
             'LIKES',
             textWidthBase,
-            textLengthBase + 250,
+            textHeightBase + 270,
             2,
         );
 
         /*
          * Comments Count
          * */
-        context.font = '100px MontserratBlack';
+        context.font = '150px MontserratBlack';
         context.fillStyle = GREEN_COLOR;
         context.textAlign = 'left';
         await drawTextWithSpacing(
             context,
-            formatNumber(comments, 10000),
-            textWidthBase * 1.85,
-            textLengthBase + 200,
+            formatNumber(comments, 1000),
+            textWidthBase * 1.7,
+            textHeightBase + 200,
             5,
         );
-        context.font = '40px MontserratBlack';
+        context.font = '60px MontserratBlack';
         context.fillStyle = 'white';
         drawTextWithSpacing(
             context,
             'COMMENTS',
-            textWidthBase * 1.85,
-            textLengthBase + 250,
+            textWidthBase * 1.7,
+            textHeightBase + 270,
             2,
         );
 
@@ -250,8 +249,21 @@ const loadFonts = () => {
  * @returns {Promise<void>} - Executes the update process asynchronously.
  */
 const process = async ({ views, videoId, likes, comments, refreshToken }) => {
+    console.log('Updating YouTube video....');
+    console.log(
+        new Date().toLocaleString('en-US', {
+            timeZone: 'Asia/Manila',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        }),
+    );
     await updateVideoDetails({ videoId, views, likes, comments, refreshToken });
     await updateThumbnail({ videoId, views, likes, comments, refreshToken });
+    console.log('End of updating.');
 };
 
 loadFonts();
