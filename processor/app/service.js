@@ -50,8 +50,7 @@ const updateVideoDetails = async ({
             return;
         }
         const video = response.data.items[0];
-        video.snippet.title = `MAYROONG ${formatNumber(views, 100000)} VIEWS ANG VIDEO NA 'TO`;
-        // video.snippet.title = `ANG VIDEO NA 'TO AY MERONG ${formatNumber(views, 100000)} VIEWS, ${formatNumber(likes, 10000)} LIKES AT ${formatNumber(comments, 10000)} COMMENTS`;
+        video.snippet.title = `ANG VIDEO NA 'TO AY MAYROONG ${formatNumber(views, 100000)} VIEWS, ${formatNumber(likes, 10000)} LIKES AT ${formatNumber(comments, 10000)} COMMENTS`;
         const updatedResponse = await youtube.videos.update({
             part: 'snippet',
             requestBody: {
@@ -115,10 +114,20 @@ const updateThumbnail = async ({
 const createThumbnail = async ({ views, likes, comments }) => {
     const GREEN_COLOR = '#00fb0b';
 
-    const drawTextWithSpacing = (context, text, x, y, letterSpacing) => {
+    const drawTextWithSpacing = (
+        context,
+        text,
+        x,
+        y,
+        letterSpacing,
+        outline = true,
+    ) => {
         context.save();
         let currentX = x;
         for (let i = 0; i < text.length; i++) {
+            if (outline) {
+                context.strokeText(text[i], currentX, y);
+            }
             context.fillText(text[i], currentX, y);
             currentX += context.measureText(text[i]).width + letterSpacing;
         }
@@ -134,29 +143,34 @@ const createThumbnail = async ({ views, likes, comments }) => {
         context.drawImage(image, 0, 0);
 
         const textWidthBase = image.width * 0.4;
-        const textHeightBase = canvas.height / 2 - 20;
+        const textHeightBase = canvas.height / 2 - 130;
 
         /*
          * Views Count
          * */
-        context.font = '220px MontserratBlack';
+        context.font = '200px MontserratBlack';
         context.fillStyle = GREEN_COLOR;
+        context.strokeStyle = 'white';
+        context.lineWidth = 8;
         context.textAlign = 'left';
+        const theViews = formatNumber(views, 100000);
         await drawTextWithSpacing(
             context,
-            formatNumber(views, 10000),
+            theViews,
             textWidthBase,
-            textHeightBase - 100,
-            5,
+            textHeightBase - 70,
+            10,
         );
-        context.font = '120px MontserratBlack';
+        context.font = '100px MontserratBlack';
         context.fillStyle = 'white';
+        context.lineWidth = 0;
         drawTextWithSpacing(
             context,
-            'VIEWS',
+            'VIEWS NA!',
             textWidthBase,
-            textHeightBase + 20,
+            textHeightBase + 40,
             2,
+            false,
         );
 
         /*
@@ -180,6 +194,7 @@ const createThumbnail = async ({ views, likes, comments }) => {
             textWidthBase,
             textHeightBase + 270,
             2,
+            false,
         );
 
         /*
@@ -203,6 +218,7 @@ const createThumbnail = async ({ views, likes, comments }) => {
             textWidthBase * 1.7,
             textHeightBase + 270,
             2,
+            false,
         );
 
         const out = createWriteStream(
