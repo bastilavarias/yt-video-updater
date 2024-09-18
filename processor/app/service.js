@@ -148,10 +148,10 @@ const createThumbnail = async ({ views, likes, comments }) => {
         /*
          * Views Count
          * */
-        context.font = '200px MontserratBlack';
+        context.font = '190px MontserratBlack';
         context.fillStyle = GREEN_COLOR;
         context.strokeStyle = 'white';
-        context.lineWidth = 8;
+        context.lineWidth = 15;
         context.textAlign = 'left';
         const theViews = formatNumber(views, 100000);
         await drawTextWithSpacing(
@@ -159,11 +159,10 @@ const createThumbnail = async ({ views, likes, comments }) => {
             theViews,
             textWidthBase,
             textHeightBase - 70,
-            10,
+            20,
         );
         context.font = '100px MontserratBlack';
         context.fillStyle = 'white';
-        context.lineWidth = 0;
         drawTextWithSpacing(
             context,
             'VIEWS NA!',
@@ -178,13 +177,16 @@ const createThumbnail = async ({ views, likes, comments }) => {
          * */
         context.font = '150px MontserratBlack';
         context.fillStyle = GREEN_COLOR;
+        context.strokeStyle = 'white';
+        context.lineWidth = 15;
+        context.textAlign = 'left';
         context.textAlign = 'left';
         await drawTextWithSpacing(
             context,
             formatNumber(likes, 1000),
             textWidthBase,
             textHeightBase + 200,
-            5,
+            10,
         );
         context.font = '60px MontserratBlack';
         context.fillStyle = 'white';
@@ -202,13 +204,16 @@ const createThumbnail = async ({ views, likes, comments }) => {
          * */
         context.font = '150px MontserratBlack';
         context.fillStyle = GREEN_COLOR;
+        context.strokeStyle = 'white';
+        context.lineWidth = 15;
+        context.textAlign = 'left';
         context.textAlign = 'left';
         await drawTextWithSpacing(
             context,
             formatNumber(comments, 1000),
             textWidthBase * 1.7,
             textHeightBase + 200,
-            5,
+            10,
         );
         context.font = '60px MontserratBlack';
         context.fillStyle = 'white';
