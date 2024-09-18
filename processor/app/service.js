@@ -148,7 +148,7 @@ const createThumbnail = async ({ views, likes, comments }) => {
         /*
          * Views Count
          * */
-        context.font = '190px MontserratBlack';
+        context.font = '170px MontserratBlack';
         context.fillStyle = GREEN_COLOR;
         context.strokeStyle = 'white';
         context.lineWidth = 15;
@@ -158,7 +158,7 @@ const createThumbnail = async ({ views, likes, comments }) => {
             context,
             theViews,
             textWidthBase,
-            textHeightBase - 70,
+            textHeightBase - 60,
             20,
         );
         context.font = '100px MontserratBlack';
