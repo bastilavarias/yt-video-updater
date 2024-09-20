@@ -112,7 +112,8 @@ const updateThumbnail = async ({
  * @returns {Promise<void>} - Creates and saves the thumbnail image asynchronously.
  */
 const createThumbnail = async ({ views, likes, comments }) => {
-    const GREEN_COLOR = '#00ff2d';
+    const FONT_COLOR = '#f9c001';
+    const STROKE_COLOR = 'black';
 
     const drawTextWithSpacing = (
         context,
@@ -149,8 +150,8 @@ const createThumbnail = async ({ views, likes, comments }) => {
          * Views Count
          * */
         context.font = '170px MontserratBlack';
-        context.fillStyle = GREEN_COLOR;
-        context.strokeStyle = 'black';
+        context.fillStyle = FONT_COLOR;
+        context.strokeStyle = STROKE_COLOR;
         context.lineWidth = 15;
         context.textAlign = 'left';
         const theViews = formatNumber(views, 100000);
@@ -176,8 +177,8 @@ const createThumbnail = async ({ views, likes, comments }) => {
          * Likes Count
          * */
         context.font = '150px MontserratBlack';
-        context.fillStyle = GREEN_COLOR;
-        context.strokeStyle = 'black';
+        context.fillStyle = FONT_COLOR;
+        context.strokeStyle = STROKE_COLOR;
         context.lineWidth = 15;
         context.textAlign = 'left';
         context.textAlign = 'left';
@@ -203,8 +204,8 @@ const createThumbnail = async ({ views, likes, comments }) => {
          * Comments Count
          * */
         context.font = '150px MontserratBlack';
-        context.fillStyle = GREEN_COLOR;
-        context.strokeStyle = 'black';
+        context.fillStyle = FONT_COLOR;
+        context.strokeStyle = STROKE_COLOR;
         context.lineWidth = 15;
         context.textAlign = 'left';
         context.textAlign = 'left';
